@@ -74,6 +74,11 @@ class MyPortfolio:
         """
         TODO: Complete Task 4 Below
         """
+        for i in range(len(self.price)):
+            best_asset_index = self.returns.iloc[i].loc[assets].to_numpy().argmax()
+            self.portfolio_weights.iloc[i] = 0
+            self.portfolio_weights.iloc[i].loc[assets[best_asset_index]] = 1
+
 
         """
         TODO: Complete Task 4 Above

@@ -66,7 +66,8 @@ class EqualWeightPortfolio:
         """
         TODO: Complete Task 1 Below
         """
-
+        for i in range(len(df)):
+            self.portfolio_weights.loc[df.index[i], assets] = 1 / len(assets)
         """
         TODO: Complete Task 1 Above
         """
@@ -117,7 +118,12 @@ class RiskParityPortfolio:
         """
         TODO: Complete Task 2 Below
         """
-
+        for i in range(self.lookback+1, len(df)):
+            window = df_returns.copy()[assets].iloc[i - self.lookback : i]
+            std = window.std(axis=0)
+            std_inv = std.rdiv(1)
+            rp = std_inv.copy().div(std_inv.sum())
+            self.portfolio_weights.loc[df.index[i], assets] = rp
         """
         TODO: Complete Task 2 Above
         """
@@ -163,7 +169,6 @@ class MeanVariancePortfolio:
     def calculate_weights(self):
         # Get the assets by excluding the specified column
         assets = df.columns[df.columns != self.exclude]
-
         # Calculate the portfolio weights
         self.portfolio_weights = pd.DataFrame(index=df.index, columns=df.columns)
 
@@ -172,6 +177,7 @@ class MeanVariancePortfolio:
             self.portfolio_weights.loc[df.index[i], assets] = self.mv_opt(
                 R_n, self.gamma
             )
+
 
         self.portfolio_weights.ffill(inplace=True)
         self.portfolio_weights.fillna(0, inplace=True)
@@ -189,11 +195,14 @@ class MeanVariancePortfolio:
                 """
                 TODO: Complete Task 3 Below
                 """
-
-                # Sample Code: Initialize Decision w and the Objective
-                # NOTE: You can modify the following code
+                # model: variables, constraints, and objective
+                # variable: w
                 w = model.addMVar(n, name="w", ub=1)
-                model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
+                # objective: maximize w^T * mu - gamma/2 * w^T * Sigma * w
+                model.setObjective(w @ mu - gamma/2 * w @ Sigma @ w, gp.GRB.MAXIMIZE)
+                # constraint: long only, no leverage
+                model.addConstr(w >= 0)
+                model.addConstr(w.sum() == 1)
 
                 """
                 TODO: Complete Task 3 Below
@@ -405,6 +414,15 @@ class AssignmentJudge:
             print("Problem 2 Complete - Get 10 Points")
             return 10
         else:
+            print("answer_dataframe: ")
+            print(answer_dataframe.iloc[0:3], "\n...")
+            print(answer_dataframe.iloc[49:52])
+            print("...\n", answer_dataframe.iloc[-2:])
+            print("rp: ")
+            print(rp_dataframe.iloc[0:3], "\n...")
+            print(rp_dataframe.iloc[49:52])
+            print("...\n", rp_dataframe.iloc[-2:])
+
             print("Problem 2 Fail")
         return 0
 
